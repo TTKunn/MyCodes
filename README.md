@@ -1,2 +1,2 @@
 # MyCode
-My code for daily practice
+My code for daily practice.
