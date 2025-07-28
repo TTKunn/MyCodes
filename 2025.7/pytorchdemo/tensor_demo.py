@@ -8,3 +8,38 @@ print(a.type())
 a=torch.Tensor(2,3)
 print(a)
 print(a.type())
+
+a = torch.ones(2,2)
+print(a)
+print(a.type())
+# 全1 Tensor
+
+a = torch.zeros(2,2)
+print(a)
+print(a.type())
+# 全0 Tenseor
+
+a = torch.eye(2,2)
+print(a)
+print(a.type())
+
+b = torch.Tensor([[1,2],[3,4],[5,6]])
+a = torch.zeros_like(b)
+print(a)
+
+a = torch.rand(2,2)
+print(a)
+print(a.type())
+# 随机生成tensor
+
+a = torch.normal(mean=0.0,std=torch.rand(5))
+# 生成一个包含5个随机数的一维张量a。这些随机数从不同正态分布中采样得到，
+# 每个随机数的标准差是随机生成的，均值固定为0
+print("一维正态分布张量：",a)
+
+a = torch.normal(mean=0.0, std=0.5, size=(3, 3))
+# 生成一个固定均值为0，标准差为0.5，3x3的二维张量。
+print("二维正态分布张量：",a)
+
+a = torch.normal(mean=torch.rand(5),std=torch.rand(5))
+print(a)
