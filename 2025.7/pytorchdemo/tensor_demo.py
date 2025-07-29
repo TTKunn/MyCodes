@@ -1,5 +1,5 @@
 import torch
-
+import numpy as np
 a = torch.Tensor([[1,2],[3,4]])
 print(a)
 print(a.type())
@@ -43,3 +43,22 @@ print("二维正态分布张量：",a)
 
 a = torch.normal(mean=torch.rand(5),std=torch.rand(5))
 print(a)
+
+
+data = np.array([1, 2, 3])
+
+Tensor = torch.Tensor(data)
+tensor = torch.tensor(data)
+from_numpy = torch.from_numpy(data)
+as_tensor = torch.as_tensor(data)
+print('输出的结果：')
+print(Tensor)
+print(tensor)
+print(from_numpy)
+print(as_tensor)
+
+print('输出的类型：')
+print(Tensor.dtype)
+print(tensor.dtype)
+print(from_numpy.dtype)
+print(as_tensor.dtype)
