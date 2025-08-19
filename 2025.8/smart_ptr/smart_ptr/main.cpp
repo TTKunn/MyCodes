@@ -1,69 +1,110 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <memory>
+#include <cstdio>
 
-// 测试用的简单类
-class MyClass {
-public:
-    MyClass(int id) : id_(id) {
-        std::cout << "MyClass(" << id_ << ") 构造" << std::endl;
-    }
-    ~MyClass() {
-        std::cout << "MyClass(" << id_ << ") 析构" << std::endl;
-    }
-    void print() {
-        std::cout << "这是 MyClass(" << id_ << ")" << std::endl;
-    }
-    int getId() const { return id_; }
+using namespace std;
 
-private:
-    int id_;
+// 定义日期结构体，用于演示资源管理
+struct Date
+{
+    int _year;
+    int _month;
+    int _day;
+
+    // 构造函数，初始化日期
+    Date(int year = 1, int month = 1, int day = 1)
+        : _year(year)
+        , _month(month)
+        , _day(day)
+    {
+        cout << "Date(" << _year << "," << _month << "," << _day << ")" << endl;
+    }
+
+    // 析构函数，用于观察对象释放
+    ~Date()
+    {
+        cout << "~Date(" << _year << "," << _month << "," << _day << ")" << endl;
+    }
 };
 
-int main() {
-    // 1. 构造unique_ptr
-    std::unique_ptr<MyClass> ptr1(new MyClass(1));
+// 1. 函数形式的删除器：用于释放动态数组
+template<class T>
+void DeleteArrayFunc(T* ptr)
+{
+    cout << "DeleteArrayFunc: 释放数组" << endl;
+    delete[] ptr;  // 数组释放必须用delete[]
+}
 
-    // 2. operator->() 和 operator*()
-    std::cout << "\n--- 使用 operator->() 和 operator*() ---" << std::endl;
-    ptr1->print();       // 通过->访问成员函数
-    (*ptr1).print();     // 通过*访问对象本身
-
-    // 3. get() - 获取原始指针（不转移所有权）
-    std::cout << "\n--- 使用 get() ---" << std::endl;
-    MyClass* raw_ptr = ptr1.get();
-    std::cout << "原始指针访问: ";
-    raw_ptr->print();    // 可以使用原始指针，但所有权仍属于ptr1
-
-    // 4. swap() - 交换两个unique_ptr的所有权
-    std::cout << "\n--- 使用 swap() ---" << std::endl;
-    std::unique_ptr<MyClass> ptr2(new MyClass(2));
-    std::cout << "交换前: ";
-    ptr1->print();
-    ptr2->print();
-
-    ptr1.swap(ptr2);
-    std::cout << "交换后: ";
-    ptr1->print();
-    ptr2->print();
-
-    // 5. reset() - 重置指针（会自动释放原有对象）
-    std::cout << "\n--- 使用 reset() ---" << std::endl;
-    ptr1.reset(new MyClass(3));  // 释放原有对象(2)，指向新对象(3)
-    ptr1->print();
-
-    ptr1.reset();  // 释放对象(3)，指针变为nullptr
-    if (!ptr1) {
-        std::cout << "ptr1 现在为空" << std::endl;
+// 2. 函数对象（仿函数）形式的删除器：用于释放动态数组
+template<class T>
+class DeleteArray
+{
+public:
+    // 重载()运算符，使对象可像函数一样调用
+    void operator()(T* ptr)
+    {
+        cout << "DeleteArray: 释放数组" << endl;
+        delete[] ptr;
     }
+};
 
-    // 6. release() - 释放所有权（需手动管理内存）
-    std::cout << "\n--- 使用 release() ---" << std::endl;
-    MyClass* released_ptr = ptr2.release();  // ptr2释放所有权，变为nullptr
-    std::cout << "release() 返回的指针: ";
-    released_ptr->print();
+// 3. 资源管理专用删除器：用于关闭文件
+class Fclose
+{
+public:
+    void operator()(FILE* ptr)
+    {
+        if (ptr)
+        {
+            cout << "Fclose: 关闭文件指针 " << ptr << endl;
+            fclose(ptr);  // 文件资源必须用fclose释放
+        }
+    }
+};
 
-    delete released_ptr;  // 必须手动释放，否则内存泄漏
+int main()
+{
+    // 一、管理动态数组（默认删除器不适用，需自定义）
+    // 方案1：利用智能指针的数组特化版本（自动使用delete[]）
+    cout << "\n--- 数组特化版本 ---" << endl;
+    unique_ptr<Date[]> up1(new Date[3]);  // unique_ptr对数组有特化
+    shared_ptr<Date[]> sp1(new Date[3]);  // C++17后shared_ptr也支持数组特化
 
-    std::cout << "\n程序结束" << std::endl;
+    // 方案2：使用函数对象作为删除器
+    cout << "\n--- 函数对象删除器 ---" << endl;
+    // unique_ptr的删除器是模板参数，必须显式指定类型
+    unique_ptr<Date, DeleteArray<Date>> up2(new Date[3]);
+    // shared_ptr的删除器是构造参数，不影响类型
+    shared_ptr<Date> sp2(new Date[3], DeleteArray<Date>());
+
+    // 方案3：使用函数指针作为删除器
+    cout << "\n--- 函数指针删除器 ---" << endl;
+    unique_ptr<Date, void(*)(Date*)> up3(new Date[3], DeleteArrayFunc<Date>);
+    shared_ptr<Date> sp3(new Date[3], DeleteArrayFunc<Date>);
+
+    // 方案4：使用lambda表达式作为删除器
+    cout << "\n--- lambda删除器 ---" << endl;
+    auto delArrLambda = [](Date* ptr) {
+        cout << "lambda: 释放数组" << endl;
+        delete[] ptr;
+        };
+    // unique_ptr需要用decltype获取lambda类型
+    unique_ptr<Date, decltype(delArrLambda)> up4(new Date[3], delArrLambda);
+    shared_ptr<Date> sp4(new Date[3], delArrLambda);
+
+    // 二、管理非内存资源（文件句柄）
+    cout << "\n--- 管理文件资源 ---" << endl;
+    // 使用函数对象作为删除器
+    shared_ptr<FILE> sp5(fopen("test.txt", "w"), Fclose());
+    // 使用lambda作为删除器（更简洁）
+    shared_ptr<FILE> sp6(fopen("test.txt", "w"), [](FILE* ptr) {
+        if (ptr) {
+            cout << "lambda: 关闭文件指针 " << ptr << endl;
+            fclose(ptr);
+        }
+        });
+
+    cout << "\n--- 程序结束 ---" << endl;
     return 0;
 }
