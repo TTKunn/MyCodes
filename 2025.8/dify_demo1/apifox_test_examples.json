@@ -1,0 +1,72 @@
+{
+  "examples": [
+    {
+      "name": "新建对话 - 用户001",
+      "method": "POST",
+      "url": "http://localhost:5000/api/chat",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "user_id": "user_001",
+        "message": "你好，我想咨询一下产品信息"
+      }
+    },
+    {
+      "name": "继续对话 - 用户001",
+      "method": "POST", 
+      "url": "http://localhost:5000/api/chat",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "user_id": "user_001",
+        "message": "能详细介绍一下吗？",
+        "conversation_id": "{{conversation_id}}"
+      },
+      "note": "conversation_id需要从上一次对话的响应中获取"
+    },
+    {
+      "name": "新建对话 - 用户002",
+      "method": "POST",
+      "url": "http://localhost:5000/api/chat", 
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "user_id": "user_002",
+        "message": "你好，我是另一个用户，需要技术支持"
+      }
+    },
+    {
+      "name": "新建对话 - 用户003",
+      "method": "POST",
+      "url": "http://localhost:5000/api/chat",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "user_id": "user_003", 
+        "message": "请问有什么服务可以提供？"
+      }
+    },
+    {
+      "name": "健康检查",
+      "method": "GET",
+      "url": "http://localhost:5000/api/health",
+      "headers": {}
+    }
+  ],
+  "test_scenarios": [
+    {
+      "scenario": "完整对话流程测试",
+      "steps": [
+        "1. 调用健康检查接口确认服务正常",
+        "2. 使用user_001发起新对话",
+        "3. 记录返回的conversation_id",
+        "4. 使用相同user_id和conversation_id继续对话",
+        "5. 使用不同user_id发起新对话，验证用户隔离"
+      ]
+    }
+  ]
+}
