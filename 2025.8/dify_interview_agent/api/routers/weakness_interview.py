@@ -14,7 +14,7 @@ from api.models import (
     WrongAnswer,
     WeaknessAnalysis
 )
-from api.dify_client import dify_manager
+from api.dify_client import dify_client
 from utils.file_handler import DataManager
 
 router = APIRouter()
@@ -28,8 +28,7 @@ async def submit_answer(request: SubmitAnswerRequest):
     用于实时反馈和评估。
     """
     try:
-        # 获取薄弱知识点强化专用的Dify客户端
-        client = dify_manager.get_client("weakness")
+        # 使用统一的Dify客户端
         
         # 构建评估提示词
         prompt = f"""
@@ -65,7 +64,7 @@ async def submit_answer(request: SubmitAnswerRequest):
         """
         
         # 调用Dify API进行评估
-        response = await client.chat_completion(
+        response = await dify_client.chat_completion(
             query=prompt,
             user_id=f"weakness_eval_{request.user_id}",
             response_mode="blocking"

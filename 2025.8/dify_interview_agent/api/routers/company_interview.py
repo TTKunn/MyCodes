@@ -10,7 +10,7 @@ from api.models import (
     CompanyInterviewResponse,
     InterviewQuestion
 )
-from api.dify_client import dify_manager
+from api.dify_client import dify_client
 
 router = APIRouter()
 
@@ -23,8 +23,7 @@ async def generate_company_questions(request: CompanyInterviewRequest):
     这些面试题基于近几年的面经，结合公司最新动态和行业热门话题。
     """
     try:
-        # 获取公司面试专用的Dify客户端
-        client = dify_manager.get_client("company")
+        # 使用统一的Dify客户端
         
         # 构建提示词
         prompt = f"""
@@ -51,7 +50,7 @@ async def generate_company_questions(request: CompanyInterviewRequest):
         """
         
         # 调用Dify API
-        response = await client.chat_completion(
+        response = await dify_client.chat_completion(
             query=prompt,
             user_id="company_interview_system",
             response_mode="blocking"

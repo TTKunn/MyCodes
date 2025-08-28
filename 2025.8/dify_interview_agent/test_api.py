@@ -95,36 +95,68 @@ def test_weakness_interview():
 def test_resume_interview():
     """测试简历定制面试"""
     print("=== 测试简历定制面试 ===")
-    
+
+    # 1. 测试简历分析和面试题生成
     url = f"{BASE_URL}/interview/resume/upload_resume/"
     data = {
         "resume_text": """
         张三
         Java后端开发工程师
-        
+
         教育背景：
         2018-2022 北京大学 计算机科学与技术 本科
-        
+
         工作经历：
         2022-至今 阿里巴巴 Java开发工程师
         - 负责电商平台后端开发
         - 使用Spring Boot、MySQL、Redis等技术
         - 参与微服务架构设计
-        
+
         技能：
         Java、Spring、MySQL、Redis、Docker、Kubernetes
         """,
         "user_id": "test_user_123",
         "target_position": "高级Java开发工程师"
     }
-    
+
     try:
         response = requests.post(url, json=data, timeout=30)
-        print(f"状态码: {response.status_code}")
+        print(f"简历分析 - 状态码: {response.status_code}")
         print(f"响应: {json.dumps(response.json(), ensure_ascii=False, indent=2)}")
     except Exception as e:
-        print(f"请求失败: {e}")
-    
+        print(f"简历分析失败: {e}")
+
+    # 2. 测试简历上传到知识库
+    upload_url = f"{BASE_URL}/interview/resume/upload_resume_to_kb/"
+    upload_data = {
+        "user_id": "test_user_123",
+        "resume_text": """
+        张三 - Java后端开发工程师
+
+        教育背景：北京大学计算机科学与技术本科
+        工作经历：阿里巴巴Java开发工程师
+        技能：Java、Spring Boot、MySQL、Redis、Docker
+        """
+    }
+
+    try:
+        response = requests.post(upload_url, data=upload_data, timeout=30)
+        print(f"简历上传 - 状态码: {response.status_code}")
+        print(f"响应: {json.dumps(response.json(), ensure_ascii=False, indent=2)}")
+    except Exception as e:
+        print(f"简历上传失败: {e}")
+
+    # 3. 测试基于知识库生成面试题
+    questions_url = f"{BASE_URL}/interview/resume/generate_resume_questions/"
+    questions_data = {"user_id": "test_user_123"}
+
+    try:
+        response = requests.post(questions_url, data=questions_data, timeout=30)
+        print(f"知识库面试题 - 状态码: {response.status_code}")
+        print(f"响应: {json.dumps(response.json(), ensure_ascii=False, indent=2)}")
+    except Exception as e:
+        print(f"知识库面试题生成失败: {e}")
+
     print()
 
 def test_knowledge_management():

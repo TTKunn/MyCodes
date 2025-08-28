@@ -11,7 +11,7 @@ from api.models import (
     KnowledgeQueryRequest,
     KnowledgeQueryResponse
 )
-from api.dify_client import dify_manager
+from api.dify_client import dify_client
 from utils.file_handler import FileHandler, DataManager
 from config import settings
 
@@ -100,8 +100,7 @@ async def query_knowledge(request: KnowledgeQueryRequest):
     如果未指定知识库名称，将在默认知识库中搜索。
     """
     try:
-        # 获取知识库聊天专用的Dify客户端
-        client = dify_manager.get_client("knowledge")
+        # 使用统一的Dify客户端
         
         # 如果指定了知识库名称，先获取知识库内容作为上下文
         context = ""
@@ -131,7 +130,7 @@ async def query_knowledge(request: KnowledgeQueryRequest):
             prompt = request.query
         
         # 调用Dify API
-        response = await client.chat_completion(
+        response = await dify_client.chat_completion(
             query=prompt,
             user_id="knowledge_query_system",
             response_mode="blocking"

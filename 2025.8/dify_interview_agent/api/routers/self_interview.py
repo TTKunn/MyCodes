@@ -9,7 +9,7 @@ from api.models import (
     SelfInterviewResponse,
     InterviewQuestion
 )
-from api.dify_client import dify_manager
+from api.dify_client import dify_client
 
 router = APIRouter()
 
@@ -22,8 +22,7 @@ async def generate_self_interview(request: SelfInterviewRequest):
     便于用户针对特定领域进行重点准备。
     """
     try:
-        # 获取自选知识点面试专用的Dify客户端
-        client = dify_manager.get_client("self")
+        # 使用统一的Dify客户端
         
         # 构建提示词
         prompt = f"""
@@ -54,7 +53,7 @@ async def generate_self_interview(request: SelfInterviewRequest):
         """
         
         # 调用Dify API
-        response = await client.chat_completion(
+        response = await dify_client.chat_completion(
             query=prompt,
             user_id="self_interview_system",
             response_mode="blocking"

@@ -28,16 +28,12 @@ pip install -r requirements.txt
 创建 `.env` 文件：
 
 ```env
-# Dify API配置
+# Dify API配置 - 只使用一个智能体
 DIFY_API_BASE_URL=https://api.dify.ai/v1
-DIFY_API_KEY=your_default_api_key
+DIFY_API_KEY=your_dify_api_key
 
-# 各模块专用API Key（可选，未配置时使用默认KEY）
-COMPANY_INTERVIEW_API_KEY=your_company_interview_key
-SELF_INTERVIEW_API_KEY=your_self_interview_key
-WEAKNESS_INTERVIEW_API_KEY=your_weakness_interview_key
-RESUME_INTERVIEW_API_KEY=your_resume_interview_key
-KNOWLEDGE_CHAT_API_KEY=your_knowledge_chat_key
+# Dify知识库API Key（可选，未配置时使用DIFY_API_KEY）
+DIFY_KNOWLEDGE_API_KEY=your_dify_knowledge_api_key
 ```
 
 ### 启动服务
@@ -89,9 +85,10 @@ GET /interview/weakness/weakness_analysis/{user_id}
 ```http
 POST /interview/resume/upload_resume/
 POST /interview/resume/upload_resume_to_kb/
+POST /interview/resume/generate_resume_questions/
 ```
 
-简历分析和个性化面试题生成。
+简历分析、上传到Dify知识库、基于知识库生成个性化面试题。
 
 ### 知识库管理
 

@@ -10,16 +10,12 @@ class Settings:
     PORT: int = 8010
     DEBUG: bool = True
     
-    # Dify API 配置
+    # Dify API 配置 - 只使用一个智能体
     DIFY_API_BASE_URL: str = os.getenv("DIFY_API_BASE_URL", "https://api.dify.ai/v1")
     DIFY_API_KEY: str = os.getenv("DIFY_API_KEY", "")
-    
-    # 不同智能体的API Key配置
-    COMPANY_INTERVIEW_API_KEY: str = os.getenv("COMPANY_INTERVIEW_API_KEY", "")
-    SELF_INTERVIEW_API_KEY: str = os.getenv("SELF_INTERVIEW_API_KEY", "")
-    WEAKNESS_INTERVIEW_API_KEY: str = os.getenv("WEAKNESS_INTERVIEW_API_KEY", "")
-    RESUME_INTERVIEW_API_KEY: str = os.getenv("RESUME_INTERVIEW_API_KEY", "")
-    KNOWLEDGE_CHAT_API_KEY: str = os.getenv("KNOWLEDGE_CHAT_API_KEY", "")
+
+    # Dify知识库API配置
+    DIFY_KNOWLEDGE_API_KEY: str = os.getenv("DIFY_KNOWLEDGE_API_KEY", "")
     
     # 数据存储路径
     DATA_DIR: str = "API/own_knle"

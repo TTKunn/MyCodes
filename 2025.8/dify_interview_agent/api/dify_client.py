@@ -137,42 +137,86 @@ class DifyAPIClient:
             except Exception as e:
                 raise Exception(f"停止生成异常: {str(e)}")
 
-class DifyClientManager:
-    """Dify客户端管理器"""
-    
-    def __init__(self):
-        self._clients = {}
-    
-    def get_client(self, client_type: str) -> DifyAPIClient:
-        """
-        获取指定类型的客户端
-        
-        Args:
-            client_type: 客户端类型 (company, self, weakness, resume, knowledge)
-        
-        Returns:
-            DifyAPIClient实例
-        """
-        if client_type not in self._clients:
-            api_key = self._get_api_key(client_type)
-            if not api_key:
-                raise ValueError(f"未配置{client_type}类型的API Key")
-            
-            self._clients[client_type] = DifyAPIClient(api_key)
-        
-        return self._clients[client_type]
-    
-    def _get_api_key(self, client_type: str) -> str:
-        """根据客户端类型获取API Key"""
-        key_mapping = {
-            "company": settings.COMPANY_INTERVIEW_API_KEY,
-            "self": settings.SELF_INTERVIEW_API_KEY,
-            "weakness": settings.WEAKNESS_INTERVIEW_API_KEY,
-            "resume": settings.RESUME_INTERVIEW_API_KEY,
-            "knowledge": settings.KNOWLEDGE_CHAT_API_KEY
-        }
-        
-        return key_mapping.get(client_type, settings.DIFY_API_KEY)
+class DifyKnowledgeAPI:
+    """Dify知识库API客户端"""
 
-# 全局客户端管理器实例
-dify_manager = DifyClientManager()
+    def __init__(self, api_key: str = None, base_url: str = None):
+        self.api_key = api_key or settings.DIFY_KNOWLEDGE_API_KEY or settings.DIFY_API_KEY
+        self.base_url = base_url or settings.DIFY_API_BASE_URL
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}"
+        }
+
+    async def create_dataset(self, name: str, description: str = "") -> Dict[str, Any]:
+        """创建知识库"""
+        url = f"{self.base_url}/datasets"
+        data = {
+            "name": name,
+            "description": description
+        }
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    url,
+                    headers=self.headers,
+                    json=data
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                raise Exception(f"创建知识库失败: {e.response.status_code} - {e.response.text}")
+            except Exception as e:
+                raise Exception(f"创建知识库异常: {str(e)}")
+
+    async def upload_document(self, dataset_id: str, file_content: bytes, filename: str) -> Dict[str, Any]:
+        """上传文档到知识库"""
+        url = f"{self.base_url}/datasets/{dataset_id}/documents"
+
+        files = {
+            "file": (filename, file_content, "application/octet-stream")
+        }
+        data = {
+            "data": json.dumps({
+                "indexing_technique": "high_quality",
+                "process_rule": {
+                    "mode": "automatic"
+                }
+            })
+        }
+
+        # 移除Content-Type，让httpx自动设置multipart/form-data
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            try:
+                response = await client.post(
+                    url,
+                    headers=headers,
+                    files=files,
+                    data=data
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                raise Exception(f"上传文档失败: {e.response.status_code} - {e.response.text}")
+            except Exception as e:
+                raise Exception(f"上传文档异常: {str(e)}")
+
+    async def get_datasets(self) -> Dict[str, Any]:
+        """获取知识库列表"""
+        url = f"{self.base_url}/datasets"
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, headers=self.headers)
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                raise Exception(f"获取知识库列表失败: {e.response.status_code} - {e.response.text}")
+            except Exception as e:
+                raise Exception(f"获取知识库列表异常: {str(e)}")
+
+# 全局客户端实例
+dify_client = DifyAPIClient(settings.DIFY_API_KEY)
+dify_knowledge_api = DifyKnowledgeAPI()
